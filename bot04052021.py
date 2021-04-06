@@ -2,7 +2,12 @@ import telebot
 from telebot import types
 from tratainputcode import trataInput
 import os
-bot = telebot.TeleBot('1631430287:AAFbmEC-7654WlacSDzCHReaip_nXt1yR1I')
+import requests
+import json
+
+#bot = telebot.TeleBot('1631430287:AAFbmEC-7654WlacSDzCHReaip_nXt1yR1I') # bot bruno
+bot = telebot.TeleBot('1613492568:AAG-_TyHADfLf0Lqw7VpRFfOGMpNHk3yQKU') # bot jonathan
+
 dic = {'materia':'','cor_prova':'','respostas':'','retorno':''}
 # handle commands, /start
 @bot.message_handler(commands=['start'])
@@ -42,15 +47,31 @@ def trataInputsProva(message):
     
 @bot.message_handler(func=lambda message: message.text.strip().upper().startswith('R -'))
 def trataInputsProva(message):
-    
+
+    bot.send_message(message.chat.id, 'Legal estamos processando sua requisição:')
     respostas = message.text.upper().replace('R -','').strip()
     dic['respostas'] = respostas
     print('Respostas',respostas)
     dic['retorno'] = trataInput(dic['cor_prova'],dic['materia'],dic['respostas'])
-    print(dic['retorno'])
-    ## aqui colocamos o tratamento da string
-    ## limpamos o dicionário
-    bot.reply_to(message, 'Legal, algo mais ? Caso tenha acabado, digite sair !')
+    #print(dic['retorno'])
+    pload = dic.get("retorno")
+    pload = json.loads(pload)
+
+    r = requests.post('http://localhost:5000/modelo', json=pload)
+    response = r.json()
+    chat_id = message.chat.id
+    materia = dic.get("materia")
+    PATH = f'resultados/resultado_{chat_id}_{materia}.txt'
+    user = message.from_user.first_name
+    f = open(PATH, "w")
+    f.write(str(response))
+    f.close()
+    resp_file = open(PATH, 'rb')
+
+    #bot.reply_to(message, 'Legal, algo mais ? Caso tenha acabado, digite sair !')
+    bot.send_message(chat_id, text=f"{user} baixe agora o resultado do seu simulado")
+    bot.send_document(chat_id, resp_file)
+
     
 
 # handle all messages, echo response back to users

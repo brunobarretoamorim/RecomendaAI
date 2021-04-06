@@ -2,7 +2,7 @@ import sys
 def retornaOrdem(materia):
     import json
 
-    with open('ordem_colunas.json', 'r') as fp:
+    with open('config/ordem_colunas.json', 'r') as fp:
         a = json.load(fp)
     return a[materia]
 
@@ -21,7 +21,7 @@ def trataInput(cor_prova,area,respostas = [], *args):
     erros = normalizaRetorno(x)
     print(respostas)
     if len(respostas) == 45:
-        x = pd.read_parquet('parametros_provas.parquet')
+        x = pd.read_parquet('config/parametros_provas.parquet')
         x_filtrado = x.query('TX_COR == "{}" & SG_AREA == "{}"'.format(cor_prova.capitalize(),area.upper()), engine='python')
 
         for n_questao,resposta in enumerate(respostas):
