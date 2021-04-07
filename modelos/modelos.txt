@@ -1,0 +1,1 @@
+Necessário colocar os modelos em formato binario neste reposítorio
