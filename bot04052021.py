@@ -1,12 +1,13 @@
 import telebot
 from telebot import types
 from tratainputcode import trataInput
+from geraReport import Visualization
 import os
 import requests
 import json
 
-#bot = telebot.TeleBot('1631430287:AAFbmEC-7654WlacSDzCHReaip_nXt1yR1I') # bot bruno
-bot = telebot.TeleBot('1613492568:AAG-_TyHADfLf0Lqw7VpRFfOGMpNHk3yQKU') # bot jonathan
+bot = telebot.TeleBot('1631430287:AAFbmEC-7654WlacSDzCHReaip_nXt1yR1I') # bot bruno
+#bot = telebot.TeleBot('1613492568:AAG-_TyHADfLf0Lqw7VpRFfOGMpNHk3yQKU') # bot jonathan
 
 dic = {'materia':'','cor_prova':'','respostas':'','retorno':''}
 # handle commands, /start
@@ -58,15 +59,19 @@ def trataInputsProva(message):
     pload = json.loads(pload)
 
     r = requests.post('http://localhost:5000/modelo', json=pload)
+    print(r.json())
     response = r.json()
     chat_id = message.chat.id
     materia = dic.get("materia")
     PATH = f'resultados/resultado_{chat_id}_{materia}.txt'
     user = message.from_user.first_name
-    f = open(PATH, "w")
-    f.write(str(response))
-    f.close()
-    resp_file = open(PATH, 'rb')
+    Visualization.executar(response)
+    #executar(response)
+    resp_file = open(os.path.join(os.getcwd(),'resultados','Enem_Report.pdf'),'rb')
+    #f = open(PATH, "w")
+    #f.write(str(response))
+    #f.close()
+    #resp_file = open(PATH, 'rb')
 
     #bot.reply_to(message, 'Legal, algo mais ? Caso tenha acabado, digite sair !')
     bot.send_message(chat_id, text=f"{user} baixe agora o resultado do seu simulado")

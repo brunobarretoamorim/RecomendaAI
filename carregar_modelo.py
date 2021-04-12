@@ -58,21 +58,23 @@ def carregaBase(materia, respostas = [], *args):
 
 def retornaHabilidades(x):
     try:
+        habilidades_erros = {}
         valores = []
         habilidades = []
         for coluna in x.columns:
             moda = int(x[coluna].mode())
             if moda >= 1:
-                valores.append(moda)
-                habilidades.append(coluna)
-        return (valores,habilidades)
+                habilidades_erros[coluna] = moda
+                #valores.append(moda)
+                #habilidades.append(coluna)
+        return habilidades_erros#(valores,habilidades)
     except:
         return print("Máteria invalida")
 
 
 def main(materia, respostas):
     df_filtrado = carregaBase(materia, respostas)
-    _,habilidades = retornaHabilidades(df_filtrado)
+    habilidades_dc = retornaHabilidades(df_filtrado)
 
-    return habilidades
+    return habilidades_dc
 
