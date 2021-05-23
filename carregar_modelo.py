@@ -1,3 +1,4 @@
+from os import error
 import pandas as pd
 import pickle
 import random
@@ -22,26 +23,32 @@ class ErroCarregarModelo(HTTPException):
 
 
 def carregaBase(materia, respostas = [], *args):
-
-    if materia == 'mt':
+    
+    if materia == 'MT':
         try:
             modelo = open('modelos/modelo_recsys_mt','rb')
             df = pd.read_parquet('dataset/erroshabilidadesmt_grp.parquet')
         except:
             raise ErroCarregarModelo()
-    elif materia == 'cn':
+    elif materia == 'CN':
         try:
             modelo = open('modelos/modelo_recsys_cn','rb')
             df = pd.read_parquet('dataset/erroshabilidadescn_grp.parquet')
         except:
             raise ErroCarregarModelo()
 
-    elif materia == 'ch':
+    elif materia == 'CH':
         try:
             modelo = open('modelos/modelo_recsys_ch','rb')
             df = pd.read_parquet('dataset/erroshabilidadesch_grp.parquet')
         except:
             raise ErroCarregarModelo()
+    elif materia == 'LC':
+        try:
+            modelo = open('modelos/modelo_recsys_lc','rb')
+            df = pd.read_parquet('dataset/erroshabilidadeslc_grp.parquet')
+        except error as e:
+            print(e)
     else:
         raise MateriaInvalida()
 
@@ -49,8 +56,11 @@ def carregaBase(materia, respostas = [], *args):
         lm_new = pickle.load(modelo)
         modelo.close()
         a = pd.DataFrame(respostas).T
+        a.rename(index = {0:'Aluno_Bot'},inplace=True)
         _,index = lm_new.kneighbors(a)
         df_filtrado = df.iloc[index[0]]
+        a.columns = df_filtrado.columns
+        df_filtrado = pd.concat([df_filtrado,a])
         return df_filtrado
     except:
         raise NumeroRespostaIncorreta()
@@ -58,23 +68,20 @@ def carregaBase(materia, respostas = [], *args):
 
 def retornaHabilidades(x):
     try:
+        inscricao = 'Aluno_Bot'
         habilidades_erros = {}
-        valores = []
-        habilidades = []
         for coluna in x.columns:
-            moda = int(x[coluna].mode())
-            if moda >= 1:
-                habilidades_erros[coluna] = moda
-                #valores.append(moda)
-                #habilidades.append(coluna)
-        return habilidades_erros#(valores,habilidades)
+            media = int(x[coluna].mean())
+            if media >= 1:
+                habilidades_erros[coluna] = (x.loc[inscricao][coluna],media)
+
+        return habilidades_erros
     except:
-        return print("Máteria invalida")
+        return print('Matéria Inválida')
 
 
 def main(materia, respostas):
     df_filtrado = carregaBase(materia, respostas)
     habilidades_dc = retornaHabilidades(df_filtrado)
-
+    print('rodou carregar modelo')
     return habilidades_dc
-

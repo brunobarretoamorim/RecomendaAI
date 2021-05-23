@@ -167,13 +167,8 @@ class Visualization:
         pdf.addPage(PdfFileReader(BytesIO(img_temp.getvalue())).getPage(0))
         with open(os.path.join(os.getcwd(),'resultados',"Enem_Report.pdf"),"wb") as f:
             pdf.write(f)
-        print("Congratulations! You have successfully created your personal YouTube report!")
-        if sys.platform == "win32":
-            os.startfile("Enem_Report.pdf")
-        elif sys.platform == "darwin":
-            subprocess.call(["open", "Enem_Report.pdf"])
-        elif which("xdg-open") is not None:
-            subprocess.call(["xdg-open", "Enem_Report.pdf"])
+        print("PDF Enem Criado!")
+        
     def executar(dc,materia):
         z = Visualization(materia)
         _,erros_aluno = z.retornaerros(dc)

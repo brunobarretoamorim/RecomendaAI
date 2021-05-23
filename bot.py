@@ -79,8 +79,8 @@ def trataInputsProva(message):
 
     respostas = message.text.upper().replace('R -','').strip()
     dic['respostas'] = respostas
-    #print('Respostas',respostas)
-    dic['retorno'] = trataInput(dic['cor_prova'],dic['materia'],dic['respostas'])
+    print('Respostas',respostas)
+    dic['retorno'] = trataInput(dic['cor_prova'],dic['materia'],dic['TP_LINGUA'],dic['respostas'])
     print(dic['retorno'])
     pload = dic.get("retorno")
     pload = json.loads(pload)
