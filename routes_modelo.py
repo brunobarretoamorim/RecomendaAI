@@ -16,7 +16,7 @@ def resultadoModelo():
 
 
     resultado = main(materia, respostas)
-
+    print('rodou main')
     return jsonify(resultado)
     
 @app.errorhandler(HTTPException)

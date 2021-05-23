@@ -33,7 +33,7 @@ def trataInput(cor_prova,area,respostas = [], *args):
                     erros[x_filtrado[(x_filtrado['CO_POSICAO'] == n_questao+inicio)]['Descricao_Habilidade'].values[0]] += 1 
                 else:
                     erros[x_filtrado[(x_filtrado['CO_POSICAO'] == n_questao+inicio)]['Descricao_Habilidade'].values[0]] = 1
-        dic = {'materia':area.lower(),'data':list(erros.values())}
+        dic = {'materia':area.upper(),'data':list(erros.values())}
     
     else:
         return -1
