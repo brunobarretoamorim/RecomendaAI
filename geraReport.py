@@ -9,6 +9,8 @@ from wordcloud import WordCloud
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
+from reportlab.lib.colors import HexColor
+import dataframe_image as dfi
 import sys
 class Visualization:
     def __init__(self,materia):
@@ -135,7 +137,25 @@ class Visualization:
                   fontname="Calibri")
         plt.savefig(os.path.join(image_dir,"piechart.png"), dpi=400)
         plt.clf()
-    def gen_pdf(self):
+
+    def tabelaerros(self,dc):
+        image_dir = os.getcwd()
+        #plt.figure(figsize=(10, 5))
+        cod_hab = pd.read_parquet(self.caminho_parametros_provas).query(f'SG_AREA == "{self.materia.upper()}"')[['CO_HABILIDADE','Descricao_Habilidade']]
+        cod_hab = cod_hab.drop_duplicates().set_index('CO_HABILIDADE').sort_index(ascending=True)
+
+        pd.set_option('display.max_colwidth', None)
+        df_styled = cod_hab
+        df_styled.sort_index(ascending=True,inplace=True)
+        df_styled.rename(columns = {'Descricao_Habilidade':'Habilidade'},inplace=True)
+        df_styled.index.names = ['Cód. Habilidade']
+        df_styled.style.set_table_styles({
+    0: [{'selector': 'td:hover',
+         'props': [('font-size', '25px')]}]
+})
+        dfi.export(df_styled,os.path.join(image_dir,"mytable.png"))
+
+    def gen_pdf(self,erros_aluno):
         image_dir = os.getcwd()
         print("Combining Images into PDF.....")
 
@@ -143,6 +163,7 @@ class Visualization:
         path4 = os.path.join(image_dir, "bar.png")
         path5 = os.path.join(image_dir, "wordcloud.png")
         path6 = os.path.join(image_dir, "piechart.png")
+        path7 = os.path.join(image_dir, "mytable.png")
         pdf = PdfFileWriter()
 
         img_temp = BytesIO()
@@ -165,6 +186,33 @@ class Visualization:
 
         img_doc.save()
         pdf.addPage(PdfFileReader(BytesIO(img_temp.getvalue())).getPage(0))
+
+        img_temp = BytesIO()
+        img_doc = canvas.Canvas(img_temp, pagesize=(3000, 2300))
+        img_doc.rect(0.83 * inch, 28.5 * inch, 40.0 * inch, 0.04 * inch, fill=1)
+
+        # title
+        img_doc.setFont("Helvetica-Bold", 82)
+        img_doc.drawString(212, 2078, "Relatório de Erros Enem 2019",)
+        #img_doc.setFillColorRGB(4682B4)
+        #img_doc.setFillColor(HexColor('#4682B4'))
+        img_doc.setFont("Helvetica-Bold", 30)
+        img_doc.drawImage(path7, 60, 900, width=1900, height=1000)
+        img_doc.drawString(800, 1900, "Descrições das Habilidades",)
+        img_doc.setFillColor(HexColor('#000000'))
+        img_doc.setFont("Helvetica-Bold", 62) 
+        
+        questoes = int(45 - sum(erros_aluno.values()))
+        potencial = int(questoes * 1.57)
+        img_doc.rect(2180, 1650,660, 300, fill=0)
+        img_doc.drawString(2200, 1870, "Acertos em questões",)
+        img_doc.drawString(2470, 1760, f"{questoes}",)
+        img_doc.rect(2180, 1250,660, 300, fill=0)
+        img_doc.drawString(2200, 1470, "Potencial de acertos",)
+        img_doc.drawString(2470, 1330, f"{potencial}",)
+        img_doc.save()
+        pdf.addPage(PdfFileReader(BytesIO(img_temp.getvalue())).getPage(0))
+        
         with open(os.path.join(os.getcwd(),'resultados',"Enem_Report.pdf"),"wb") as f:
             pdf.write(f)
         print("PDF Enem Criado!")
@@ -180,4 +228,5 @@ class Visualization:
         z.errosAlunoxBase(a,erros_aluno)
         z.gen_wordcloud(dc.keys())
         z.pieChart(dc)
-        z.gen_pdf()
+        z.tabelaerros(dc)
+        z.gen_pdf(erros_aluno)
